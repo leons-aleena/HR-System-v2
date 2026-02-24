@@ -10,6 +10,7 @@
 
 <body>
 
+ 
   <!-- Success Modal -->
   <div class="success-toast-backdrop" id="successToastBackdrop">
     <div class="success-toast">
@@ -201,7 +202,7 @@
             
             <div class="modal-actions">
               <button class="modal-btn confirm" onclick="closeScheduleModal()">Close</button>
-  <button type="submit" form="virtualForm" class="modal-btn submit-btn">Submit</button>
+  <button type="submit" form="walkinForm" class="modal-btn submit-btn">Submit</button>
   
 </div>
 
@@ -649,7 +650,7 @@
       
 
       <button class="refresh-btn"
-  onclick="handleRefresh(this, loadScheduledCandidateData)">
+  onclick="handleRefresh(this, loadCandidateData)">
   <i class="fa-solid fa-rotate"></i>
 </button>
 
@@ -657,7 +658,7 @@
   </div>
         </div>
 
-        <div class="schedule-content" >
+        <div class="Schedule-content" >
             <div id="ScheduledCandidatePoolContainer"></div>
           </div>
         </div>
@@ -803,12 +804,106 @@
     </div>
 
   </div>
-</div>
-
-
 
 </div>
 
+
+
+
+</div>
+<!-- Exit Cause Modal -->
+<div id="exitCauseModal" class="exit-modal-backdrop">
+  <div class="exit-modal-box">
+    <h2 class="conf-modal-title">What was Cause of Exit</h2>
+
+    <button
+      class="conf-modal-btn"
+      style="color:#2563eb"
+      onclick="selectExitCause('resignation')">
+      Candidate Resignation
+    </button>
+
+    <button
+      class="conf-modal-btn"
+      style="color:#dc2626"
+      onclick="selectExitCause('termination')">
+      Company Termination
+    </button>
+  </div>
+</div>
+
+<!-- Exit Reason + Date Modal -->
+<!-- Exit Reason + Date Modal -->
+<div id="exitDetailsModal" class="exit-modal-backdrop">
+  <div class="exit-modal-box wide">
+
+    <h2 class="conf-modal-title" id="exitDetailsTitle"></h2>
+
+    <!-- Reason -->
+    <div class="exit-form-field">
+      <label for="exitReasonSelect">
+        Please Specify the Reason for Candidate Resignation
+      </label>
+      <select id="exitReasonSelect">
+        <option value="">Select reason</option>
+      </select>
+    </div>
+
+    <!-- Last working day -->
+    <div class="exit-form-field">
+      <label for="exitLastWorkingDate">
+        Specify the Last working day of candidate
+      </label>
+      <input type="date" id="exitLastWorkingDate" />
+    </div>
+
+    <!-- Buttons -->
+    <div class="conf-modal-buttons">
+      <button
+        class="conf-modal-btn conf-modal-btn-cancel"
+        onclick="closeExitDetails()">
+        Cancel
+      </button>
+
+      <button
+        class="conf-modal-btn conf-modal-btn-confirm"
+        onclick="openFinalExitConfirm()">
+        Confirm & Save
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Final Exit Confirmation Modal -->
+<div id="exitFinalConfirmModal" class="exit-modal-backdrop">
+  <div class="exit-modal-box">
+    <div class="conf-modal-icon">?</div>
+    <h2 class="conf-modal-title">Confirmation Required</h2>
+
+    <p class="conf-modal-content" id="exitFinalText"></p>
+
+    <div class="conf-modal-buttons">
+      <button class="conf-modal-btn conf-modal-btn-confirm"
+        onclick="confirmExit()">Confirm</button>
+
+      <button class="conf-modal-btn conf-modal-btn-cancel"
+        onclick="closeFinalExit()">Go Back</button>
+    </div>
+  </div>
+</div>
+
+
+<!--popover elemen  -->
+<div id="packagePopover" class="package-popover hidden">
+  <div class="package-popover-content">
+    <div class="pkg-label">Job Salary</div>
+    <div class="pkg-value" id="pkgSalary">—</div>
+
+    <div class="pkg-label">Joining Date</div>
+    <div class="pkg-value" id="pkgJoining">—</div>
+  </div>
+</div>
 
 <!-- ------------------------------------------------------------------------------ -->
 
@@ -828,6 +923,9 @@
     let currentEmployeeId = "TPEID457776" ;
     let currentProfileId = null;
     let interviewScheduleCount = 0;
+
+    
+  
 
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', function() {
@@ -982,7 +1080,7 @@ document.getElementById("walkinDate").min = today;
 
    loadTodaysInterviewCount(currentEmployeeId);
     hiddenloadCandidateData()
-    loadScheduledCandidateData()
+    hiddenloadScheduledCandidateData()
 
     // ===== CANDIDATE DATA =====
     function hiddenloadCandidateData() {
@@ -1377,8 +1475,8 @@ function createHighlightModal() {
           <div id="tagContainer" class="highlight-tag-container"></div>
 
           <div class="highlight-modal-actions">
-            <button class="highlight-cancel" onclick="closeHighlightModal()">Cancel</button>
             <button class="highlight-submit" onclick="submitHighlight()">Submit</button>
+            <button class="highlight-cancel" onclick="closeHighlightModal()">Cancel</button>
           </div>
         </div>
 
@@ -1465,51 +1563,23 @@ function renderTags() {
 
 function submitHighlight() {
   const reason = document.getElementById("highlightReason").value;
-  const submitBtn = document.querySelector(".highlight-submit");
-  const cancelBtn = document.querySelector(".highlight-cancel");
 
-  // Disable both buttons immediately
-  submitBtn.disabled = true;
-  cancelBtn.disabled = true;
-
-  openScheduledConfirmation(
-    "Are you sure you want to save this highlight?",
-    function () {
-
-      // Change button text to Saving...
-      submitBtn.innerText = "Saving...";
-
-      google.script.run
-        .withSuccessHandler(function (res) {
-
-          if (res.success) {
-            showSuccessNotification("Highlight saved successfully");
-            closeHighlightModal();
-          } else {
-            showErrorModal(res.message);
-
-            // Re-enable buttons if failed
-            submitBtn.disabled = false;
-            cancelBtn.disabled = false;
-            submitBtn.innerText = "Submit";
-          }
-        })
-        .withFailureHandler(function () {
-          showErrorModal("Something went wrong. Please try again.");
-
-          // Re-enable buttons if error
-          submitBtn.disabled = false;
-          cancelBtn.disabled = false;
-          submitBtn.innerText = "Submit";
-        })
-        .updateCandidateHighlights(
-          selectedProfileId,
-          reason,
-          selectedTags
-        );
-    }
-  );
+  google.script.run
+    .withSuccessHandler(function (res) {
+      if (res.success) {
+        showSuccessNotification("Highlight saved successfully");
+        closeHighlightModal();
+      } else {
+        showErrorModal(res.message);
+      }
+    })
+    .updateCandidateHighlights(
+      selectedProfileId,
+      reason,
+      selectedTags
+    );
 }
+
 
     // ===== SEARCH FUNCTIONALITY =====
     function initializeSearch() {
@@ -2084,15 +2154,11 @@ function generateGoogleMeetLink() {
   input.disabled = true;
 
   google.script.run
-    .withSuccessHandler(function(response) {
-  console.log(response); // debug
-
-  // If backend returns { meetLink: "url" }
-  input.value = response.meetLink;
-
-  input.disabled = false;
-  input.dataset.loading = "false";
-})
+    .withSuccessHandler(function(link) {
+      input.value = link;
+      input.disabled = false;
+      input.dataset.loading = "false";
+    })
     .withFailureHandler(function() {
       input.value = "";
       input.placeholder = "Failed to generate. Click again";
@@ -2585,6 +2651,7 @@ function closeConfirmationModal() {
 }
 
 function confirmAction() {
+  console.log("CONFIRM CLICKED", confirmationCallback);
   if (confirmationCallback) confirmationCallback();
   closeConfirmationModal();
 }
@@ -3020,16 +3087,14 @@ function filterInterviews(type, customDate = null) {
   const now = new Date();
 
   return scheduledCandidatePoolData.filter(item => {
-    const interviewDate = new Date(item.interviewDate);
+    const interviewDate = new Date(item.interviewScheduledTimestamp);
     if (!item.interviewScheduledTimestamp || isNaN(interviewDate)) return false;
 
     // Pending → already passed
-if (type === "Pending") {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // reset to midnight
+    if (type === "Pending") {
+      return interviewDate < now;
+    }
 
-  return interviewDate < today;
-}
     // Today
     if (type === "Today") {
       return interviewDate.toDateString() === now.toDateString();
@@ -3213,66 +3278,43 @@ function hiddenloadScheduledCandidateData() {
       }
     }
 
+
+
 function loadScheduledCandidateData() {
+  //   // 🔥 DEFAULT = ALL
+  // selectedFilter = "all";
 
-  console.log('Loading Scheduled candidate data...');
-  
-  const container = document.getElementById('ScheduledCandidatePoolContainer');
-  container.innerHTML = ""; // clear existing content
-
-  // 🔥 Create skeleton container
-  const skeletonWrapper = document.createElement("div");
-  skeletonWrapper.className = "scheduled-card-container";
-
-  // 🔥 Generate 8 skeleton cards
-  for (let i = 0; i < 8; i++) {
-    const skeletonCard = document.createElement("div");
-    skeletonCard.className = "scheduled-card scheduled-card-skeleton";
-
-    skeletonCard.innerHTML = `
-      <div class="skeleton skeleton-title"></div>
-      <div class="skeleton skeleton-subinfo"></div>
-
-      <div class="skeleton-info-box">
-        <div class="skeleton skeleton-icon"></div>
-        <div class="skeleton skeleton-line short"></div>
-        <div class="skeleton skeleton-badge"></div>
-        <div class="skeleton skeleton-line"></div>
-        <div class="skeleton skeleton-line small"></div>
-      </div>
-
-      <div class="skeleton-footer">
-        <div class="skeleton skeleton-btn-small"></div>
-        <div class="skeleton skeleton-btn-large"></div>
-      </div>
-    `;
-
-    skeletonWrapper.appendChild(skeletonCard);
-  }
-
-  container.appendChild(skeletonWrapper);
-
-  // Clear previous data
-  scheduledCandidatePoolData = [];
-
-  // Check if google.script.run is available
-  if (typeof google === 'undefined' || !google.script || !google.script.run) {
-    console.error('Google Apps Script API not available');
-    showError('Cannot connect to server. Please refresh the page.');
-    return;
-  }
-
-  try {
-    google.script.run
-      .withSuccessHandler(handleScheduledCandidateDataSuccess)
-      .withFailureHandler(handleScheduledCandidateDataError)
-      .getScheduledCandidates();
-  } catch (error) {
-    console.error('Error calling server:', error);
-    showError('Error connecting to server: ' + error.message);
-  }
-}
-
+      console.log('Loading Schedudled candidate data...');
+      
+      const container = document.getElementById('ScheduledCandidatePoolContainer');
+      container.innerHTML = `
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Loading Scheduled candidates...</p>
+        </div>
+      `;
+      
+      // Clear previous data
+      scheduledCandidatePoolData = [];
+      
+      // Check if google.script.run is available
+      if (typeof google === 'undefined' || !google.script || !google.script.run) {
+        console.error('Google Apps Script API not available');
+        showError('Cannot connect to server. Please refresh the page.');
+        return;
+      }
+      
+      try {
+        // Call server function
+        google.script.run
+          .withSuccessHandler(handleScheduledCandidateDataSuccess)
+          .withFailureHandler(handleScheduledCandidateDataError)
+          .getScheduledCandidates();
+      } catch (error) {
+        console.error('Error calling server:', error);
+        showError('Error connecting to server: ' + error.message);
+      }
+    }
 
     function handleScheduledCandidateDataSuccess(data) {
       console.log('scheduled Candidate data received:', data);
@@ -3298,25 +3340,7 @@ function loadScheduledCandidateData() {
       scheduledCandidatePoolData = data;
       
       // Render cards
-      // renderScheduledCandidateCards(data,candidatePoolData);
-      
-  const pendingData = filterInterviews("Pending");
-  renderScheduledCandidateCards(pendingData, candidatePoolData);
-
-const activeBtn = document.querySelector(".date-btn.active");
-
-  if (activeBtn) {
-    const type = activeBtn.textContent.trim();
-    const result = filterInterviews(type);
-    renderScheduledCandidateCards(result, candidatePoolData);
-
-    const btnRect = activeBtn.getBoundingClientRect();
-    const parentRect = activeBtn.parentElement.getBoundingClientRect();
-
-    slider.style.width = `${btnRect.width}px`;
-    slider.style.left = `${btnRect.left - parentRect.left}px`;
-  }
-
+      renderScheduledCandidateCards(data,candidatePoolData);
       
       // Update stats
       // updatescheduledStats(data);
@@ -3639,10 +3663,6 @@ function openScheduledMoreDropdown(event, btn, employeeId, profileId, interviewI
   dropdown.className = "scheduled-more-dropdown";
   dropdown.innerHTML = `
     <div class="scheduled-more-item" onclick="markCompanyReschedule('${employeeId}','${profileId}','${interviewId}','${company}')">Company Reschedule</div>
-    <div class="scheduled-more-item" onclick="openHighlightModal('${profileId}','${employeeId}')">Highlight</div>
-    <div class="scheduled-more-item"onclick="downloadCV('${safeProfileId}', this)">
-      Download CV
-    </div>
     <div class="scheduled-more-item disable">Request Follow-up</div>
   `;
 
@@ -3673,7 +3693,6 @@ function markCompanyReschedule(employeeId, profileId, interviewId,company) {
 
       closeScheduledConfirmation();
       closeUpdatePopup(); // if any modal is open
-      loadScheduledCandidateData();
 
       console.log("COMPANY RESCHEDULE CONFIRMED:", {
         employeeId,
@@ -3833,9 +3852,9 @@ function markCandidateNotAttended(employeeId, profileId, interviewId, company) {
         </button>
 
         <button class="scheduled-ghosted-btn"
-  onclick="markCandidateGhosted(this,'${employeeId}','${profileId}','${interviewId}','${company}')">
-  Ghosted
-</button>
+          onclick="markCandidateGhosted('${employeeId}','${profileId}','${interviewId}','${company}')">
+          Ghosted
+        </button>
 
         <button class="scheduled-not-attended-btn"
           onclick="markCandidateRejectedP2('${employeeId}','${profileId}','${interviewId}','${company}')">
@@ -3868,56 +3887,6 @@ function closeUpdatePopup() {
 }
 
 // ================================step 3 NOt attendded=================================================
-//ghosted 
-function markCandidateGhosted(button, employeeId, profileId, interviewId, company) {
-
-  const originalText = button.innerHTML;
-
-  openScheduledConfirmation(
-    `
-      Are you sure to update<br>
-      interview status as<br>
-      <strong>Ghosted</strong>
-    `,
-    () => {
-
-      // Get popup container
-      const popup = button.closest(".scheduled-update-popup");
-
-      // Disable ALL buttons inside popup
-      const allButtons = popup.querySelectorAll("button");
-      allButtons.forEach(btn => btn.disabled = true);
-
-      // Change clicked button to Saving...
-      button.innerHTML = "Saving...";
-      button.classList.add("saving-state");
-
-      google.script.run
-        .withSuccessHandler(() => {
-          showSuccessNotification("Candidate marked as Ghosted");
-          closeUpdatePopup();
-          loadScheduledCandidateData();
-        })
-        .withFailureHandler((err) => {
-          console.error(err);
-          showErrorModal("Failed to update.");
-
-          // Reset buttons on failure
-          allButtons.forEach(btn => btn.disabled = false);
-          button.innerHTML = originalText;
-          button.classList.remove("saving-state");
-        })
-        .updateInteviewResultsToSheet(
-          "Ghosted",
-          employeeId,
-          profileId,
-          interviewId,
-          company
-        );
-    }
-  );
-}
-
 
 //rescheudled-Not Attended
 function markCandidateReschedule(employeeId, profileId, interviewId, company) {
@@ -3978,7 +3947,8 @@ function backToNotAttendedOptions() {
   }
 }
 
-function submitRescheduleReason(employeeId, profileId, interviewId, company, btn) {
+
+function submitRescheduleReason(employeeId, profileId, interviewId,company, btn) {
 
   const popup = btn.closest(".scheduled-reschedule-popup");
   const reason = popup.querySelector(".scheduled-reschedule-textarea").value.trim();
@@ -3988,36 +3958,20 @@ function submitRescheduleReason(employeeId, profileId, interviewId, company, btn
     return;
   }
 
+  // 🔹 Open confirmation modal
   openScheduledConfirmation(
-    `
-      Are you sure to update<br>
-      interview status as<br>
-      <strong>Reschedule</strong>
-    `,
-    () => submitRescheduleReasonFinal(
-      employeeId,
-      profileId,
-      interviewId,
-      company,
-      reason,
-      popup
-    )
-  );
+  `
+    Are you sure to update<br>
+    interview status as<br>
+    <strong>Reschedule</strong>
+  `,
+  () => submitRescheduleReasonFinal(employeeId, profileId, interviewId, company, reason)
+);
+
 }
 
-function submitRescheduleReasonFinal(employeeId, profileId, interviewId, company, reason, popup) {
 
-  const submitBtn = popup.querySelector(".scheduled-submit-btn");
-  const cancelBtn = popup.querySelector(".scheduled-cancel-btn");
-
-  // 🔹 Disable buttons
-  submitBtn.disabled = true;
-  cancelBtn.disabled = true;
-
-  // 🔹 Change button to Saving...
-  submitBtn.innerText = "Saving...";
-  submitBtn.style.color = "#28a745";
-  submitBtn.style.cursor = "not-allowed";
+function submitRescheduleReasonFinal(employeeId, profileId, interviewId, company, reason) {
 
   console.log("CONFIRMED RESCHEDULE:", {
     employeeId,
@@ -4027,32 +3981,10 @@ function submitRescheduleReasonFinal(employeeId, profileId, interviewId, company
     reason
   });
 
-  closeScheduledConfirmation();
-
   google.script.run
     .withSuccessHandler(() => {
-      showSuccessNotification("Reschedule submitted successfully");
-      loadScheduledCandidateData();
-
-      // Reset (not strictly required since popup closes, but safe)
-      submitBtn.disabled = false;
-      cancelBtn.disabled = false;
-      submitBtn.innerText = "Submit";
-      submitBtn.style.color = "";
-      submitBtn.style.cursor = "";
-
-      closeUpdatePopup();
-    })
-    .withFailureHandler(() => {
-
-      // 🔹 Re-enable if backend fails
-      submitBtn.disabled = false;
-      cancelBtn.disabled = false;
-      submitBtn.innerText = "Submit";
-      submitBtn.style.color = "";
-      submitBtn.style.cursor = "";
-
-      alert("Something went wrong. Please try again.");
+      showSuccessNotification("Reschedule submitted successfully"); // 👈 add here
+      closeUpdatePopup(); // optional: keep after notification
     })
     .updateInteviewResultsToSheet(
       "Reschedule",
@@ -4064,6 +3996,38 @@ function submitRescheduleReasonFinal(employeeId, profileId, interviewId, company
     );
 }
 
+
+
+//ghosted
+function markCandidateGhosted(employeeId, profileId, interviewId, company) {
+
+  openScheduledConfirmation(
+    `
+      Are you sure to update<br>
+      interview status as<br>
+      <strong>Ghosted</strong>
+    `,
+    () => {
+      // ✅ CONFIRMED ACTION
+      console.log("GHOSTED CONFIRMED:", {
+        employeeId,
+        profileId,
+        interviewId
+      });
+
+      // Close any open update popups
+      // closeUpdatePopup();
+
+      // 🔹 Call GAS / backend here
+      google.script.run
+        .withSuccessHandler(() => {
+          showSuccessNotification("Candidate marked as Ghostes")
+          closeUpdatePopup();
+        })
+        .updateInteviewResultsToSheet("Ghosted (P2)",employeeId, profileId, interviewId,company);
+    }
+  );
+}
 
 //candidate rejected P2
 function markCandidateRejectedP2(employeeId, profileId, interviewId, company) {
@@ -4118,31 +4082,11 @@ function submitRejectedP2Reason(employeeId, profileId, interviewId, company, btn
       interview status as<br>
       <strong>Candidate Rejected (P2)</strong>
     `,
-    () => submitRejectedP2Final(
-      employeeId,
-      profileId,
-      interviewId,
-      company,
-      reason,
-      popup
-    )
+    () => submitRejectedP2Final(employeeId, profileId, interviewId, company, reason)
   );
 }
 
-
-function submitRejectedP2Final(employeeId, profileId, interviewId, company, reason, popup) {
-
-  const submitBtn = popup.querySelector(".scheduled-submit-btn");
-  const cancelBtn = popup.querySelector(".scheduled-cancel-btn");
-
-  // 🔹 Disable buttons
-  submitBtn.disabled = true;
-  cancelBtn.disabled = true;
-
-  // 🔹 Change button state
-  submitBtn.innerText = "Saving...";
-  submitBtn.style.color = "#28a745";
-  submitBtn.style.cursor = "not-allowed";
+function submitRejectedP2Final(employeeId, profileId, interviewId, company, reason) {
 
   console.log("REJECTED P2 CONFIRMED:", {
     employeeId,
@@ -4151,43 +4095,21 @@ function submitRejectedP2Final(employeeId, profileId, interviewId, company, reas
     reason
   });
 
+  // close confirmation
   closeScheduledConfirmation();
 
+  // close textarea modal
+  closeUpdatePopup();
+
+  // 🔹 Call backend here
   google.script.run
     .withSuccessHandler(() => {
-
-      showSuccessNotification("Marked Candidate Rejected");
-      loadScheduledCandidateData();
-
-      // Reset (safe but optional since popup closes)
-      submitBtn.disabled = false;
-      cancelBtn.disabled = false;
-      submitBtn.innerText = "Submit";
-      submitBtn.style.color = "";
-      submitBtn.style.cursor = "";
-
-      closeUpdatePopup();
-    })
-    .withFailureHandler(() => {
-
-      // 🔹 Re-enable if backend fails
-      submitBtn.disabled = false;
-      cancelBtn.disabled = false;
-      submitBtn.innerText = "Submit";
-      submitBtn.style.color = "";
-      submitBtn.style.cursor = "";
-
-      alert("Something went wrong. Please try again.");
-    })
-    .updateInteviewResultsToSheet(
-      "Candidate Rejected (P2)",
-      employeeId,
-      profileId,
-      interviewId,
-      company,
-      reason
-    );
+          showSuccessNotification("Marked Candidate Rejected ")
+          closeUpdatePopup()
+          })
+    .updateInteviewResultsToSheet("Candidate Rejected (P2)",employeeId, profileId, interviewId,company, reason);
 }
+
 // ==================================3 attended=======================================================
 //  selected
 function markCandidateSelected(employeeId, profileId, interviewId, company) {
@@ -4227,7 +4149,7 @@ function openWalkinQuestionPopup(employeeId, profileId, interviewId, company) {
 
       <div class="scheduled-update-actions">
         <button class="scheduled-attended-btn"
-          onclick="handleWalkinYes(this,'${employeeId}','${profileId}','${interviewId}','${company}')">
+          onclick="handleWalkinYes('${employeeId}','${profileId}','${interviewId}','${company}')">
           Yes
         </button>
 
@@ -4242,88 +4164,16 @@ function openWalkinQuestionPopup(employeeId, profileId, interviewId, company) {
   document.body.appendChild(wrapper);
 }
 
-function handleWalkinYes(button, employeeId, profileId, interviewId, company) {
+function handleWalkinYes(employeeId, profileId, interviewId, company) {
+  closeUpdatePopup();
 
-  const originalText = button.innerHTML;
+  console.log("Virtual interview has a follow-up Walk-in:", {
+    employeeId,
+    profileId,
+    interviewId
+  });
 
-  const confirmationContent = `
-    This candidate has cleared the Virtual round.<br>
-    Do you want to move them to Shortlisted Walk-in?
-  `;
-
-  openScheduledConfirmation(
-    confirmationContent,
-    () => {
-
-      // Find No button
-      const popup = button.closest(".scheduled-update-popup");
-      const noButton = popup.querySelector(".scheduled-not-attended-btn");
-
-      // Change Yes button state
-      button.innerHTML = "Saving...";
-      button.classList.add("saving-state");
-      button.disabled = true;
-
-      // Disable No button
-      if (noButton) {
-        noButton.disabled = true;
-        noButton.style.opacity = "0.6";
-        noButton.style.cursor = "not-allowed";
-      }
-
-      google.script.run
-        .withSuccessHandler(() => {
-
-          showSuccessNotification("Candidate moved to Shortlisted Walk-in");
-          closeUpdatePopup();
-          loadScheduledCandidateData();
-
-        })
-        .withFailureHandler((err) => {
-
-          console.error(err);
-          showErrorModal("Failed to update.");
-
-          // Reset Yes button
-          button.innerHTML = originalText;
-          button.classList.remove("saving-state");
-          button.disabled = false;
-
-          // Re-enable No button
-          if (noButton) {
-            noButton.disabled = false;
-            noButton.style.opacity = "";
-            noButton.style.cursor = "";
-          }
-        })
-        .addToShortlistedforWalkinCol(
-          employeeId,
-          profileId,
-          interviewId,
-          company
-        );
-    }
-  );
-}
-
-function loadingPopup(content = "Please wait...") {
-  if (document.getElementById("app-loading-popup")) return;
-
-  const html = `
-    <div class="loading-overlay" id="app-loading-popup">
-      <div class="loading-modal">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">${content}</div>
-      </div>
-    </div>
-  `;
-
-  document.body.insertAdjacentHTML("beforeend", html);
-}
-
-function hideLoadingPopup() {
-  const popup = document.getElementById("app-loading-popup");
-  if (popup) popup.remove();
+  // ❌ Do NOT open Final Details
 }
 
 
@@ -4353,71 +4203,39 @@ function submitFinalDetails() {
 
   const salary = document.getElementById("finalSalary").value;
   const joiningDate = document.getElementById("finalJoiningDate").value;
-  const button = document.querySelector(".final-confirm-btn");
 
   if (!salary || !joiningDate) {
     showErrorModal("Please fill all details");
     return;
   }
 
-  const reason = `${salary} monthly (${joiningDate})`;
+  console.log("FINAL DETAILS SUBMITTED:", {
+    ...finalDetailsContext,
+    salary,
+    joiningDate
+  });
 
-  const confirmationContent = `
-    Are you sure you want to mark this candidate as <b>Selected</b>?<br><br>
-    <b>Salary:</b> ₹${salary}<br>
-    <b>Joining Date:</b> ${joiningDate}
-  `;
+  // closeFinalDetailsModal();
 
-  openScheduledConfirmation(
+  const reason=`${salary} monthly (${joiningDate})`
 
-    confirmationContent,
-    () => {
+  // 🔹 Call backend here
+  google.script.run
+    .withSuccessHandler(() => {
+      showSuccessNotification("Marked Candidate selected")
+      closeFinalDetailsModal()})
+    .updateInteviewResultsToSheet("Selected",finalDetailsContext.employeeId, finalDetailsContext.profileId, finalDetailsContext.interviewId,finalDetailsContext.company, reason);
 
-      // 🔹 Change button to Saving
-      const originalText = button.innerText;
-      button.innerText = "Saving...";
-      button.style.backgroundColor = "#28a745";
-      button.disabled = true;
-
-      google.script.run
-        .withSuccessHandler(() => {
-
-          showSuccessNotification("Marked Candidate selected");
-          loadScheduledCandidateData();
-
-          // ✅ Change to Saved
-          button.innerText = "Saved";
-
-          setTimeout(() => {
-            button.innerText = originalText;
-            button.style.backgroundColor = "";
-            button.disabled = false;
-          }, 1200);
-
-          closeFinalDetailsModal();
-          closeUpdatePopup();
-
-        })
-        .withFailureHandler((err) => {
-          console.error(err);
-          showErrorModal("Failed to update.");
-
-          // Reset button on error
-          button.innerText = originalText;
-          button.style.backgroundColor = "";
-          button.disabled = false;
-        })
-        .updateInteviewResultsToSheet(
-          "Selected",
-          finalDetailsContext.employeeId,
-          finalDetailsContext.profileId,
-          finalDetailsContext.interviewId,
-          finalDetailsContext.company,
-          reason
-        );
-    }
-  );
+  // Backend call later
+  // google.script.run.saveFinalDetails(
+  //   finalDetailsContext.employeeId,
+  //   finalDetailsContext.profileId,
+  //   finalDetailsContext.interviewId,
+  //   salary,
+  //   joiningDate
+  // );
 }
+
 //company jected
 function markCandidateCompanyRejected(employeeId, profileId, interviewId, company) {
 
@@ -4460,7 +4278,7 @@ function backToCandidateStatus(employeeId, profileId, interviewId, company) {
   markCandidateAttended(employeeId, profileId, interviewId, company);
 }
 
-function confirmCompanyRejected(employeeId, profileId, interviewId, company, btn) {
+function confirmCompanyRejected(employeeId, profileId, interviewId,company, btn) {
 
   const popup = btn.closest(".scheduled-reschedule-popup");
   const reason = popup.querySelector(".scheduled-reschedule-textarea").value.trim();
@@ -4476,31 +4294,11 @@ function confirmCompanyRejected(employeeId, profileId, interviewId, company, btn
       interview status as<br>
       <strong>Company Rejected</strong>
     `,
-    () => submitCompanyRejectedFinal(
-      employeeId, 
-      profileId, 
-      interviewId, 
-      company, 
-      reason,
-      popup
-    )
+    () => submitCompanyRejectedFinal(employeeId, profileId, interviewId, company,reason)
   );
 }
 
-
-function submitCompanyRejectedFinal(employeeId, profileId, interviewId, company, reason, popup) {
-
-  const saveBtn = popup.querySelector(".scheduled-submit-btn");
-  const cancelBtn = popup.querySelector(".scheduled-cancel-btn");
-
-  // 🔹 Disable buttons
-  saveBtn.disabled = true;
-  cancelBtn.disabled = true;
-
-  // 🔹 Change save button to Saving...
-  saveBtn.innerText = "Saving...";
-  saveBtn.style.color = "#28a745"; // green
-  saveBtn.style.cursor = "not-allowed";
+function submitCompanyRejectedFinal(employeeId, profileId, interviewId, company, reason) {
 
   console.log("COMPANY REJECTED CONFIRMED:", {
     employeeId,
@@ -4510,43 +4308,20 @@ function submitCompanyRejectedFinal(employeeId, profileId, interviewId, company,
     reason
   });
 
+  // close confirmation modal
   closeScheduledConfirmation();
 
+  // close reason modal
+  // closeUpdatePopup();
+
+  // 🔹 Backend call here
   google.script.run
-    .withSuccessHandler(() => { 
-      showSuccessNotification("Marked as Company Rejected");
-      loadScheduledCandidateData();
-
-
-      // 🔹 Reset button state before closing
-      saveBtn.disabled = false;
-      cancelBtn.disabled = false;
-      saveBtn.innerText = "Save";
-      saveBtn.style.color = "";
-      saveBtn.style.cursor = "";
-
-      closeUpdatePopup();
-    })
-    .withFailureHandler(() => {
-
-      // 🔹 If error, re-enable buttons
-      saveBtn.disabled = false;
-      cancelBtn.disabled = false;
-      saveBtn.innerText = "Save";
-      saveBtn.style.color = "";
-      saveBtn.style.cursor = "";
-
-      alert("Something went wrong. Please try again.");
-    })
-    .updateInteviewResultsToSheet(
-      "Company Rejected",
-      employeeId,
-      profileId,
-      interviewId,
-      company,
-      reason
-    );
+    .withSuccessHandler(() =>{ 
+      showSuccessNotification("Marked as Company Rejected")
+      closeUpdatePopup()})
+    .updateInteviewResultsToSheet("Company Rejected",employeeId, profileId, interviewId,company, reason);
 }
+
 
 
 
@@ -4842,31 +4617,13 @@ function loadSelectedCandidateData() {
   console.log("Loading Selected candidate data...");
 
   const container = document.getElementById("selectedCandidatePoolContainer");
-  container.innerHTML = ""; // clear first
 
-  // 🔥 Create 8 skeleton cards
-  for (let i = 0; i < 8; i++) {
-    const skeletonCard = document.createElement("div");
-    skeletonCard.className = "selected-candidate-card selected-skeleton-card";
-
-    skeletonCard.innerHTML = `
-      <div class="selected-card-header">
-        <div>
-          <div class="skeleton skeleton-name"></div>
-          <div class="skeleton skeleton-phone"></div>
-        </div>
-        <div class="skeleton skeleton-menu"></div>
-      </div>
-
-      <div class="skeleton skeleton-date-box"></div>
-
-      <div class="skeleton-footer">
-        <div class="skeleton skeleton-button"></div>
-      </div>
-    `;
-
-    container.appendChild(skeletonCard);
-  }
+  container.innerHTML = `
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Loading Selected candidates...</p>
+    </div>
+  `;
 
   // reset global
   selectedCandidatePoolData = [];
@@ -4887,6 +4644,7 @@ function loadSelectedCandidateData() {
     container.innerHTML = `<p style="color:red">${error.message}</p>`;
   }
 }
+
 // ===========stats===========================
 function renderJoiningStats(data) {
   const now = new Date();
@@ -5035,7 +4793,7 @@ function renderSelectedCandidateCards(candidates) {
       </div>
     </div>
 
-    <div class="selected-card-menu" onclick="openSelectedMoreDropdown(event, this, '${employeeId}', '${candidate.profileId}', '${candidate.interviewId}', '${candidate.selectedCompanyName}')">
+    <div class="selected-card-menu">
       <i class="fa-solid fa-ellipsis-vertical"></i>
     </div>
   </div>
@@ -5106,40 +4864,6 @@ function confirmRescheduleJoiningDate(interviewId) {
   );
 }
 
-function openSelectedMoreDropdown(event, btn, employeeId, profileId, interviewId, company) {
-  event.stopPropagation();
-
-  // Remove existing dropdown
-  document.querySelectorAll(".scheduled-more-dropdown").forEach(d => d.remove());
-
-  const dropdown = document.createElement("div");
-  dropdown.className = "scheduled-more-dropdown";
-  dropdown.innerHTML = `
-    <div class="scheduled-more-item" onclick="openHighlightModal('${profileId}','${employeeId}')">
-      Highlight
-    </div>
-    <div class="scheduled-more-item"onclick="downloadCV('${profileId}', this)">
-      Download CV
-    </div>
-    
-  `;
-
-  // Make parent relative if not already
-  btn.parentElement.style.position = "relative";
-
-  btn.parentElement.appendChild(dropdown);
-
-  // Close on outside click
-  setTimeout(() => {
-    document.addEventListener("click", closeSelectedMoreDropdown, { once: true });
-  }, 0);
-}
-
-function closeSelectedMoreDropdown() {
-  document.querySelectorAll(".scheduled-more-dropdown").forEach(d => d.remove());
-}
-
-
 
 function openRescheduleJoiningDateModal(interviewId) {
 
@@ -5165,9 +4889,9 @@ function openRescheduleJoiningDateModal(interviewId) {
 
       <div class="scheduled-reschedule-actions">
         <button class="scheduled-submit-btn"
-  onclick="submitRescheduleJoiningDate(this,'${interviewId}')">
-  Save
-</button>
+          onclick="submitRescheduleJoiningDate('${interviewId}')">
+          Save
+        </button>
 
         <button class="scheduled-cancel-btn"
           onclick="closeUpdatePopup()">
@@ -5180,7 +4904,7 @@ function openRescheduleJoiningDateModal(interviewId) {
   document.body.appendChild(wrapper);
 }
 
-function submitRescheduleJoiningDate(button, interviewId) {
+function submitRescheduleJoiningDate(interviewId) {
 
   const dateInput = document.getElementById("rescheduleJoiningDate");
   const newDate = dateInput.value;
@@ -5190,40 +4914,17 @@ function submitRescheduleJoiningDate(button, interviewId) {
     return;
   }
 
-  const originalText = button.innerHTML;
+  console.log("Joining Date Rescheduled To:", newDate);
 
-  // Get popup container
-  const popup = button.closest(".scheduled-reschedule-popup");
-  const allButtons = popup.querySelectorAll("button");
+  closeUpdatePopup();
 
-  // Change Save to Saving...
-  button.innerHTML = "Saving...";
-  button.classList.add("saving-state");
-
-  // Disable all buttons
-  allButtons.forEach(btn => btn.disabled = true);
-
-  // Call backend
-  google.script.run
-    .withSuccessHandler(() => {
-      showSuccessNotification("Joining Date rescheduled");
-      closeUpdatePopup();
-      loadSelectedCandidateData();
-    })
-    .withFailureHandler((err) => {
-      console.error(err);
-      showErrorModal("Failed to reschedule.");
-
-      // Reset button state
-      allButtons.forEach(btn => btn.disabled = false);
-      button.innerHTML = originalText;
-      button.classList.remove("saving-state");
-    })
-    .joiningdateReschedule(
-      interviewId,
-      newDate
-    );
+  // 🔹 Backend hook (later)
+  google.script.run.joiningdateReschedule(
+    interviewId,
+    newDate
+  );
 }
+
 // -----------------update status-------------------
 function openJoinStatusPopup(employeeId, profileId, interviewId, company,joiningDate,salary) {
 
@@ -5248,7 +4949,7 @@ function openJoinStatusPopup(employeeId, profileId, interviewId, company,joining
 
         <button class="scheduled-not-attended-btn"
           onclick="handleCandidateNotJoined('${employeeId}','${profileId}','${interviewId}','${company}')">
-          No
+          Not Yet
         </button>
       </div>
     </div>
@@ -5294,9 +4995,9 @@ function handleCandidateNotJoined(employeeId, profileId, interviewId, company) {
         </button>
 
         <button class="scheduled-not-attended-btn"
-  onclick="markCandidateGhostedP2(this,'${employeeId}','${profileId}','${interviewId}','${company}')">
-  Ghosted (P2)
-</button>
+          onclick="markCandidateGhostedP2('${employeeId}','${profileId}','${interviewId}','${company}')">
+          Ghosted (P2)
+        </button>
 
       </div>
     </div>
@@ -5340,9 +5041,9 @@ function openCompanyRejectionReason(employeeId, profileId, interviewId, company)
 
       <div class="scheduled-reschedule-actions">
         <button class="scheduled-submit-btn"
-  onclick="confirmCompanyRejectionFromSelected(this,'${employeeId}','${profileId}','${interviewId}','${company}')">
-  Save
-</button>
+          onclick="confirmCompanyRejectionFromSelected('${employeeId}','${profileId}','${interviewId}','${company}')">
+          Save
+        </button>
 
         <button class="scheduled-cancel-btn"
           onclick="backToJoinStatusPopup('${employeeId}','${profileId}','${interviewId}','${company}')">
@@ -5355,7 +5056,7 @@ function openCompanyRejectionReason(employeeId, profileId, interviewId, company)
   document.body.appendChild(wrapper);
 }
 
-function confirmCompanyRejectionFromSelected(button, employeeId, profileId, interviewId, company) {
+function confirmCompanyRejectionFromSelected(employeeId, profileId, interviewId,company) {
 
   const popup = document.querySelector(".scheduled-reschedule-popup");
   const reason = popup.querySelector(".scheduled-reschedule-textarea").value.trim();
@@ -5370,14 +5071,7 @@ function confirmCompanyRejectionFromSelected(button, employeeId, profileId, inte
       Are you sure you want to update<br>
       status as <strong>Company Rejection</strong>?
     `,
-    () => submitCompanyRejectionFromSelected(
-      button,
-      employeeId,
-      profileId,
-      interviewId,
-      company,
-      reason
-    )
+    () => submitCompanyRejectionFromSelected(employeeId, profileId, interviewId, company, reason)
   );
 }
 
@@ -5403,9 +5097,9 @@ function openCandidateRejectionP3Reason(employeeId, profileId, interviewId, comp
 
       <div class="scheduled-reschedule-actions">
         <button class="scheduled-submit-btn"
-  onclick="confirmCandidateRejectionP3(this,'${employeeId}','${profileId}','${interviewId}','${company}')">
-  Save
-</button>
+          onclick="confirmCandidateRejectionP3('${employeeId}','${profileId}','${interviewId}','${company}')">
+          Save
+        </button>
 
         <button class="scheduled-cancel-btn"
           onclick="backToJoinStatusPopup('${employeeId}','${profileId}','${interviewId}','${company}')">
@@ -5418,7 +5112,7 @@ function openCandidateRejectionP3Reason(employeeId, profileId, interviewId, comp
   document.body.appendChild(wrapper);
 }
 
-function confirmCandidateRejectionP3(button, employeeId, profileId, interviewId, company) {
+function confirmCandidateRejectionP3(employeeId, profileId, interviewId, company) {
 
   const popup = document.querySelector(".scheduled-reschedule-popup");
   const reason = popup.querySelector(".scheduled-reschedule-textarea").value.trim();
@@ -5433,16 +5127,10 @@ function confirmCandidateRejectionP3(button, employeeId, profileId, interviewId,
       Are you sure you want to update<br>
       status as <strong>Candidate Rejection (P3)</strong>?
     `,
-    () => submitCandidateRejectionP3(
-      button,
-      employeeId,
-      profileId,
-      interviewId,
-      company,
-      reason
-    )
+    () => submitCandidateRejectionP3(employeeId, profileId, interviewId, company, reason)
   );
 }
+
 
 function backToJoinStatusPopup(employeeId, profileId, interviewId, company) {
   closeUpdatePopup();
@@ -5450,106 +5138,45 @@ function backToJoinStatusPopup(employeeId, profileId, interviewId, company) {
 }
 
 
-function submitCompanyRejectionFromSelected(
-  button,
-  employeeId,
-  profileId,
-  interviewId,
-  company,
-  reason
-) {
+function submitCompanyRejectionFromSelected(employeeId, profileId, interviewId, company, reason) {
 
-  const originalText = button.innerHTML;
-
-  const popup = button.closest(".scheduled-reschedule-popup");
-  const allButtons = popup.querySelectorAll("button");
-
-  // Change Save → Saving...
-  button.innerHTML = "Saving...";
-  button.classList.add("saving-state");
-
-  // Disable all buttons
-  allButtons.forEach(btn => btn.disabled = true);
+  console.log("COMPANY REJECTION CONFIRMED:", {
+    employeeId,
+    profileId,
+    interviewId, company
+    ,reason
+  });
 
   closeScheduledConfirmation();
+  // closeUpdatePopup();
 
+    // 🔹 Call GAS here
   google.script.run
-    .withSuccessHandler(() => {
-      showSuccessNotification("Marked as Company Rejected");
-      closeUpdatePopup();
-      loadSelectedCandidateData();
-    })
-    .withFailureHandler((err) => {
-      console.error(err);
-      showErrorModal("Failed to update.");
-
-      // Reset on failure
-      allButtons.forEach(btn => btn.disabled = false);
-      button.innerHTML = originalText;
-      button.classList.remove("saving-state");
-    })
-    .updateInteviewResultsToSheet(
-      "Company Rejection",
-      employeeId,
-      profileId,
-      interviewId,
-      company,
-      reason
-    );
+    .withSuccessHandler(() => closeUpdatePopup())
+    .updateInteviewResultsToSheet("Company Rejection",employeeId, profileId, interviewId,company, reason);
 }
 
-function submitCandidateRejectionP3(
-  button,
-  employeeId,
-  profileId,
-  interviewId,
-  company,
-  reason
-) {
+function submitCandidateRejectionP3(employeeId, profileId, interviewId, company, reason) {
 
-  const originalText = button.innerHTML;
-
-  const popup = button.closest(".scheduled-reschedule-popup");
-  const allButtons = popup.querySelectorAll("button");
-
-  // Change Save → Saving...
-  button.innerHTML = "Saving...";
-  button.classList.add("saving-state");
-
-  // Disable all buttons
-  allButtons.forEach(btn => btn.disabled = true);
+  console.log("CANDIDATE REJECTION P3 CONFIRMED:", {
+    employeeId,
+    profileId,
+    interviewId,
+    company,reason
+  });
 
   closeScheduledConfirmation();
+  // closeUpdatePopup();
 
+    // 🔹 Call GAS here
   google.script.run
-    .withSuccessHandler(() => {
-      showSuccessNotification("Marked as Candidate Rejected (P3)");
-      closeUpdatePopup();
-          loadSelectedCandidateData();
-    })
-    .withFailureHandler((err) => {
-      console.error(err);
-      showErrorModal("Failed to update.");
+    .withSuccessHandler(() => closeUpdatePopup())
+    .updateInteviewResultsToSheet("Candidate Rejection (P3)",employeeId, profileId, interviewId,company, reason);
 
-      // Reset on failure
-      allButtons.forEach(btn => btn.disabled = false);
-      button.innerHTML = originalText;
-      button.classList.remove("saving-state");
-    })
-    .updateInteviewResultsToSheet(
-      "Candidate Rejection (P3)",
-      employeeId,
-      profileId,
-      interviewId,
-      company,
-      reason
-    );
 }
 
 //ghosted P2
-function markCandidateGhostedP2(button, employeeId, profileId, interviewId, company) {
-
-  const originalText = button.innerHTML;
+function markCandidateGhostedP2(employeeId, profileId, interviewId, company) {
 
   openScheduledConfirmation(
     `
@@ -5558,42 +5185,27 @@ function markCandidateGhostedP2(button, employeeId, profileId, interviewId, comp
       <strong>Ghosted</strong>
     `,
     () => {
+      // ✅ CONFIRMED ACTION
+      console.log("GHOSTED CONFIRMED:", {
+        employeeId,
+        profileId,
+        interviewId
+      });
 
-      const popup = button.closest(".scheduled-update-popup");
-      const allButtons = popup.querySelectorAll("button");
+      // Close any open update popups
+      // closeUpdatePopup();
 
-      // Change clicked button
-      button.innerHTML = "Saving...";
-      button.classList.add("saving-state");
-
-      // Disable all buttons
-      allButtons.forEach(btn => btn.disabled = true);
-
+      // 🔹 Call GAS / backend here
       google.script.run
         .withSuccessHandler(() => {
-          showSuccessNotification("Candidate marked as Ghosted (P2)");
+          showSuccessNotification("Candidate marked as Ghosted")
           closeUpdatePopup();
-          loadSelectedCandidateData();
         })
-        .withFailureHandler((err) => {
-          console.error(err);
-          showErrorModal("Failed to update.");
-
-          // Reset on failure
-          allButtons.forEach(btn => btn.disabled = false);
-          button.innerHTML = originalText;
-          button.classList.remove("saving-state");
-        })
-        .updateInteviewResultsToSheet(
-          "Ghosted (P2)",
-          employeeId,
-          profileId,
-          interviewId,
-          company
-        );
+        .updateInteviewResultsToSheet("Ghosted (P2)",employeeId, profileId, interviewId,company);
     }
   );
 }
+
 
 // yes
 function handleCandidateJoined(
@@ -5621,17 +5233,16 @@ function handleCandidateJoined(
 
       <div class="scheduled-update-actions">
         <button class="scheduled-attended-btn"
-  onclick="handleJoinYes(
-    this,
-    '${employeeId}',
-    '${profileId}',
-    '${interviewId}',
-    '${company}',
-    '${expectedDate}',
-    '${expectedSalary}'
-  )">
-  Yes
-</button>
+          onclick="handleJoinYes(
+            '${employeeId}',
+            '${profileId}',
+            '${interviewId}',
+            '${company}',
+            '${expectedDate}',
+            '${expectedSalary}'
+          )">
+          Yes
+        </button>
 
         <button class="scheduled-not-attended-btn"
           onclick="handleJoinNo(
@@ -5657,7 +5268,6 @@ function handleCandidateJoined(
 
 // -----------------yes-----------
 function handleJoinYes(
-  button,
   employeeId,
   profileId,
   interviewId,
@@ -5665,8 +5275,7 @@ function handleJoinYes(
   expectedDate,
   expectedSalary
 ) {
-
-  const originalText = button.innerHTML;
+  closeUpdatePopup();
 
   openScheduledConfirmation(
     `
@@ -5676,46 +5285,25 @@ function handleJoinYes(
       Salary: <strong>₹ ${expectedSalary}</strong>
     `,
     () => {
+      closeScheduledConfirmation();
 
-      const popup = button.closest(".scheduled-update-popup");
-      const allButtons = popup.querySelectorAll("button");
+      console.log("JOINED ON-TIME", {
+        employeeId,
+        profileId,
+        interviewId,
+        joiningDate: expectedDate,
+        salary: expectedSalary
+      });
 
-      // Change Yes → Saving...
-      button.innerHTML = "Saving...";
-      button.classList.add("saving-state");
+         // 🔹 Call GAS here
+  google.script.run
+    .withSuccessHandler(() => closeUpdatePopup())
+    .updateJoinedCandidates(employeeId, profileId, interviewId,company, expectedDate,expectedSalary);
 
-      // Disable all buttons
-      allButtons.forEach(btn => btn.disabled = true);
-
-      google.script.run
-        .withSuccessHandler(() => {
-
-          closeScheduledConfirmation();
-          showSuccessNotification("Candidate Joined");
-          closeUpdatePopup();
-
-        })
-        .withFailureHandler((err) => {
-
-          console.error(err);
-          showErrorModal("Failed to update.");
-
-          // Reset on failure
-          allButtons.forEach(btn => btn.disabled = false);
-          button.innerHTML = originalText;
-          button.classList.remove("saving-state");
-        })
-        .updateJoinedCandidates(
-          employeeId,
-          profileId,
-          interviewId,
-          company,
-          expectedDate,
-          expectedSalary
-        );
     }
   );
 }
+
 // -----------------no--------------
 function handleJoinNo(
   employeeId,
@@ -5757,17 +5345,16 @@ function handleJoinNo(
 
       <div class="scheduled-reschedule-actions">
         <button class="scheduled-submit-btn"
-  onclick="confirmJoinWithChanges(
-    this,
-    '${employeeId}',
-    '${profileId}',
-    '${interviewId}',
-    '${company}',
-    '${expectedDate}',
-    '${expectedSalary}'
-  )">
-  Save
-</button>
+          onclick="confirmJoinWithChanges(
+            '${employeeId}',
+            '${profileId}',
+            '${interviewId}',
+            '${company}',
+            '${expectedDate}',
+            '${expectedSalary}'
+          )">
+          Save
+        </button>
 
         <button class="scheduled-cancel-btn"
           onclick="handleCandidateJoined('${employeeId}',
@@ -5789,7 +5376,6 @@ function handleJoinNo(
 }
 
 function confirmJoinWithChanges(
-  button,
   employeeId,
   profileId,
   interviewId,
@@ -5797,9 +5383,10 @@ function confirmJoinWithChanges(
   expectedDate,
   expectedSalary
 ) {
-
-  const actualDate = document.getElementById("actualJoiningDate").value;
-  const actualSalary = document.getElementById("actualSalary").value;
+  const actualDate =
+    document.getElementById("actualJoiningDate").value;
+  const actualSalary =
+    document.getElementById("actualSalary").value;
 
   if (!actualDate && !actualSalary) {
     showErrorModal("Please update joining date or salary.");
@@ -5820,18 +5407,17 @@ function confirmJoinWithChanges(
       ${changes.join("<br>")}
     `,
     () => submitJoinWithChanges(
-      button,
       employeeId,
       profileId,
       interviewId,
       company,
       finalDate,
-      finalSalary + " LPA"
+      finalSalary+" LPA"
     )
   );
 }
+
 function submitJoinWithChanges(
-  button,
   employeeId,
   profileId,
   interviewId,
@@ -5839,49 +5425,37 @@ function submitJoinWithChanges(
   joiningDate,
   salary
 ) {
+  closeScheduledConfirmation();
+  // closeUpdatePopup();
 
-  const originalText = button.innerHTML;
+  console.log("JOINED WITH CHANGES", {
+    employeeId,
+    profileId,
+    interviewId,
+    joiningDate,
+    salary
+  });
 
-  const popup = button.closest(".scheduled-reschedule-popup");
-  const allButtons = popup.querySelectorAll("button");
-
-  // Change Save → Saving...
-  button.innerHTML = "Saving...";
-  button.classList.add("saving-state");
-
-  // Disable all buttons (Save + Go Back)
-  allButtons.forEach(btn => btn.disabled = true);
-
+   // 🔹 Call GAS hereinnerHTML
   google.script.run
-    .withSuccessHandler(() => {
+    .withSuccessHandler(() => closeUpdatePopup())
+    .updateJoinedCandidates(employeeId, profileId, interviewId,company, joiningDate,salary);
 
-      closeScheduledConfirmation();
-      showSuccessNotification("Candidate Joined");
-      closeUpdatePopup();
-
-    })
-    .withFailureHandler((err) => {
-
-      console.error(err);
-      showErrorModal("Failed to update.");
-
-      // Reset on failure
-      allButtons.forEach(btn => btn.disabled = false);
-      button.innerHTML = originalText;
-      button.classList.remove("saving-state");
-    })
-    .updateJoinedCandidates(
-      employeeId,
-      profileId,
-      interviewId,
-      company,
-      joiningDate,
-      salary
-    );
 }
 
-
 //=================Retention Pool===========================
+
+// ===== Exit Flow State =====
+let exitContext = {
+  employeeId: null,
+  profileId: null,
+  company: null,
+  type: null,
+  reason: null,
+  lastDate: null
+};
+
+
 
 //: Loader function (entry point)
 
@@ -5995,10 +5569,12 @@ function buildRetentionSection(title, list) {
   // optional collapse behavior (can keep for later)
   const header = section.querySelector(".section-header");
   const body = section.querySelector(".section-body");
+  const icon = header.querySelector("i");
 
-  // header.addEventListener("click", () => {
-  //   body.classList.toggle("hidden");
-  // });
+  header.addEventListener("click", () => {
+    body.classList.toggle("hidden");
+    icon.classList.toggle("rotated");
+  });
 
   return section;
 }
@@ -6006,12 +5582,24 @@ function buildRetentionSection(title, list) {
 //Retention card generator
 
 function createRetentionCard(item) {
+   // ===== STEP 2: Progress calculation =====
+  const totalDays = Number(item.retentionTimeFrame) || 0;
+  const doneDays = Math.min(item.completedDays || 0, totalDays);
+
+  const progressPercent = totalDays
+    ? Math.round((doneDays / totalDays) * 100)
+    : 0;
+
   const status = (item.status || "").toLowerCase();
-  const isCompleted = status === "completed";
-  const isExited = status === "resignation" || status === "termination";
+  const isCompleted =
+    status === "completed" ||
+    (doneDays >= totalDays && totalDays > 0);
+
+  const isExited =
+    status === "resignation" || status === "termination";
 
   return `
-    <div class="retention-card">
+    <div class="retention-card ${isCompleted ? 'is-completed' : ''}">
 
       <!-- HEADER -->
       <div class="retention-card-header">
@@ -6025,42 +5613,67 @@ function createRetentionCard(item) {
           </div>
         </div>
 
-        <button class="package-btn"
+        <button class="package-btn icon-btn"
+          title="Package Details"
           data-salary="${item.salary || ""}"
           data-joining="${item.joiningDate || ""}">
-          Package Details
+          <i class="fa-solid fa-file-signature"></i>
         </button>
+          <div class="package-popover hidden">
+            <div class="package-popover-content">
+              <div class="pkg-label">Job Salary</div>
+              <div class="pkg-value">${item.salary || "—"}</div>
+
+              <div class="pkg-label">Joining Date</div>
+              <div class="pkg-value">
+                ${item.joiningDate
+                  ? new Date(item.joiningDate).toLocaleDateString("en-GB")
+                  : "—"}
+              </div>
+            </div>
+          </div>
       </div>
 
       <!-- PROGRESS -->
       <div class="retention-progress">
         <div class="progress-label">
-          Retention Period
-          ${
-            isCompleted
-              ? `<span class="status-text completed">Completed</span>`
-              : isExited
-                ? `<span class="status-text exited">${item.status}</span>`
-                : ""
-          }
+          <span>Retention Period</span>
+          <span class="status-text ${isCompleted ? 'completed' : ''}">
+            ${isCompleted ? 'Completed' : `${doneDays}/${totalDays}`}
+          </span>
         </div>
 
-        <div class="progress-bar">
-          <div class="progress-fill ${isCompleted ? "completed" : ""}"></div>
+       <div class="progress-bar">
+          <div
+            class="progress-fill ${isCompleted ? 'completed' : ''}"
+            style="width: ${isCompleted ? 100 : progressPercent}%">
+          </div>
         </div>
       </div>
 
-      <!-- ACTIONS -->
+     <!-- ACTIONS -->
       <div class="retention-actions">
-        <button class="danger-btn" title="Resign / Terminate">
-          <i class="fa-solid fa-user-slash"></i>
+
+        <button 
+          class="danger-btn retention-exit-btn ${isCompleted ? 'disabled' : ''}"
+          data-employee-id="${item.employeeId}"
+          data-profile-id="${item.profileId}"
+          data-company="${item.companyName}"
+          ${isCompleted ? 'disabled' : ''}
+        >
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
         </button>
 
-        <button class="complete-btn ${isCompleted ? "active" : "disabled"}">
+        <button
+          class="complete-btn ${isCompleted ? 'active' : item.canComplete ? 'active' : 'disabled'}"
+          data-employee-id="${item.employeeId}"
+          data-profile-id="${item.profileId}"
+          ${isCompleted || item.canComplete ? '' : 'disabled'}
+        >
           Completed
         </button>
-      </div>
 
+      </div>
     </div>
   `;
 }
@@ -6092,8 +5705,194 @@ document.addEventListener("click", function (e) {
 });
 
 
-//==========================================================
+// ================= Retention Complete Handler =================
+document.addEventListener("click", function (e) {
+  const btn = e.target.closest(".complete-btn");
+  if (!btn) return;
 
+  // Block disabled buttons
+  if (btn.hasAttribute("disabled")) return;
+
+  const employeeId = btn.dataset.employeeId;
+  const profileId  = btn.dataset.profileId;
+
+  if (!employeeId || !profileId) {
+    console.error("Missing identifiers for retention completion");
+    return;
+  }
+
+  //  Reuse your existing confirmation modal
+  openConfirmationModal(
+    "Mark Retention as Completed",
+  `
+    Are you sure you want to mark this retention as
+    <br><strong>Completed</strong>?
+  `,
+    () => {
+      btn.textContent = "Updating...";
+      btn.setAttribute("disabled", true);
+
+      google.script.run
+        .withSuccessHandler(() => {
+          showSuccessNotification("Retention marked as Completed");
+          loadRetentionPool(); // refresh UI
+        })
+        .withFailureHandler(err => {
+          console.error(err);
+          showErrorNotification("Failed to update retention");
+          btn.textContent = "Completed";
+          btn.removeAttribute("disabled");
+        })
+        .markRetentionCompleted(employeeId, profileId);
+    }
+  );
+});
+
+//Click handler for Leave button
+document.addEventListener("click", function (e) {
+  const btn = e.target.closest(".retention-exit-btn");
+  if (!btn) return;
+
+  closeAllExitModals(); // 🔥 important
+
+  exitContext.employeeId = btn.dataset.employeeId;
+  exitContext.profileId  = btn.dataset.profileId;
+  exitContext.company    = btn.dataset.company;
+
+  document.getElementById("exitCauseModal").classList.add("active");
+});
+
+
+// <!-- Handle Exit Cause selection -->
+function selectExitCause(type) {
+  closeAllExitModals();
+
+  exitContext.type = type;
+
+  const title =
+    type === "resignation"
+      ? "Please Specify the Reason for Candidate Resignation"
+      : "Please Specify the Reason for Company Termination";
+
+  document.getElementById("exitDetailsTitle").innerText = title;
+
+  const select = document.getElementById("exitReasonSelect");
+  select.innerHTML = `<option value="">Loading reasons...</option>`;
+
+  google.script.run
+    .withSuccessHandler(reasons => {
+      select.innerHTML = `<option value="">Select reason</option>`;
+
+      if (!reasons.length) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "No reasons found";
+        select.appendChild(opt);
+        return;
+      }
+
+      reasons.forEach(r => {
+        const opt = document.createElement("option");
+        opt.value = r;
+        opt.textContent = r;
+        select.appendChild(opt);
+      });
+    })
+    .withFailureHandler(err => {
+      console.error(err);
+      select.innerHTML = `<option value="">Failed to load reasons</option>`;
+    })
+    .getExitReasons(type);
+
+  document.getElementById("exitDetailsModal").classList.add("active");
+}
+
+
+//Open Final Confirmation
+function openFinalExitConfirm() {
+  const reason = document.getElementById("exitReasonSelect").value;
+  const date   = document.getElementById("exitLastWorkingDate").value;
+
+  if (!reason || !date) {
+    alert("Please fill all details");
+    return;
+  }
+
+  exitContext.reason = reason;
+  exitContext.lastDate = date;
+
+  closeAllExitModals(); // 🔥 hide reason modal
+
+  document.getElementById("exitFinalText").innerHTML = `
+    Are you sure to update retention status as
+    <br><strong>${
+      exitContext.type === "resignation"
+        ? "Candidate Resignation"
+        : "Company Termination"
+    }</strong>
+  `;
+
+  document.getElementById("exitFinalConfirmModal").classList.add("active");
+}
+
+
+//Final Confirm
+function confirmExit() {
+  google.script.run
+    .withSuccessHandler(() => {
+      showSuccessNotification("Retention updated successfully");
+      closeAllExitModals();
+      loadRetentionPool();
+    })
+    .withFailureHandler(err => {
+      console.error(err);
+      showErrorModal("Failed to update retention");
+    })
+    .markRetentionExit(
+      exitContext.employeeId,
+      exitContext.profileId,
+      exitContext.company,
+      exitContext.type,
+      exitContext.reason,
+      exitContext.lastDate
+    );
+}
+
+//Close helpers
+function closeExitDetails() {
+  closeAllExitModals();
+}
+
+function closeFinalExit() {
+  closeAllExitModals();
+}
+
+function closeAllExitModals() {
+  document.getElementById("exitCauseModal")?.classList.remove("active");
+  document.getElementById("exitDetailsModal")?.classList.remove("active");
+  document.getElementById("exitFinalConfirmModal")?.classList.remove("active");
+}
+
+let activePackageButton = null;
+document.addEventListener("click", function (e) {
+  const btn = e.target.closest(".package-btn");
+  if (!btn) return;
+
+  const card = btn.closest(".retention-card");
+  const popover = card.querySelector(".package-popover");
+
+  // Close all other popovers
+  document
+    .querySelectorAll(".package-popover")
+    .forEach(p => {
+      if (p !== popover) p.classList.add("hidden");
+    });
+
+  popover.classList.toggle("hidden");
+});
+
+
+//==========================================================
 
 
 </script>
